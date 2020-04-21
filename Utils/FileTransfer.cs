@@ -109,7 +109,7 @@ namespace EFTService.Utils
                 {
                     fileNameLen = BitConverter.ToInt32(state.buffer, 0);
                     string fileName = Encoding.UTF8.GetString(state.buffer, 4, fileNameLen);
-                    _receivedPath = Helper.GetSavePath(_configPath) + "\\" + fileName; // TODO
+                    _receivedPath = Helper.GetSavePath(_configPath, fileName); // TODO
                     _flag++;
                 }
                 if (_flag >= 1)
