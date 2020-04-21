@@ -24,7 +24,7 @@ namespace EFTService
 
         protected override void OnStart(string[] args)
         {
-            System.Diagnostics.Debugger.Launch();
+            //System.Diagnostics.Debugger.Launch();
             base.OnStart(args);
             if (args.Length > 0)
             {

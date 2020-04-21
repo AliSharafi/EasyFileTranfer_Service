@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -16,7 +17,7 @@ namespace EFTService.Utils
     public class FileTransfer
     {
         #region Constants
-        const int _port = 2345;
+        const int _portReceive = 2345;
         #endregion
 
         #region fields
@@ -30,7 +31,7 @@ namespace EFTService.Utils
         string _configPath;
         #endregion
 
-        public FileTransfer(bool listen,string ConfigPath)
+        public FileTransfer(bool listen, string ConfigPath)
         {
             if (listen)
             {
@@ -40,33 +41,11 @@ namespace EFTService.Utils
             }
         }
 
-        #region Send File
-        public void Send(string FilePath)
-        {
-            string _fName = Path.GetFileName(FilePath);
-            Socket clientSock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
-            byte[] fileName = Encoding.UTF8.GetBytes(_fName); //file name
-            byte[] fileData = File.ReadAllBytes(FilePath); //file
-            byte[] fileNameLen = BitConverter.GetBytes(fileName.Length); //lenght of file name
-
-            byte[] m_clientData = new byte[4 + fileName.Length + fileData.Length];
-
-            fileNameLen.CopyTo(m_clientData, 0);
-            fileName.CopyTo(m_clientData, 4);
-            fileData.CopyTo(m_clientData, 4 + fileName.Length);
-
-            clientSock.Connect(_serverIP, _port); //target machine's ip address and the port number
-            clientSock.Send(m_clientData);
-            clientSock.Close();
-        }
-        #endregion
-
         #region Receive file
         private void StartListening()
         {
             //byte[] bytes = new Byte[1024];
-            IPEndPoint ipEnd = new IPEndPoint(IPAddress.Any, _port);
+            IPEndPoint ipEnd = new IPEndPoint(IPAddress.Any, _portReceive);
             Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             try
             {
@@ -89,7 +68,13 @@ namespace EFTService.Utils
 
             Socket listener = (Socket)ar.AsyncState;
             Socket handler = listener.EndAccept(ar);
-
+#if DEBUG
+            using (EventLog eventLog = new EventLog("Application"))
+            {
+                eventLog.Source = "EFTService";
+                eventLog.WriteEntry("Data Received From : " + IPAddress.Parse(((IPEndPoint)handler.RemoteEndPoint).Address.ToString()), EventLogEntryType.Information, 101, 1);
+            }
+#endif
             StateObject state = new StateObject();
             state.workSocket = handler;
             handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
@@ -98,6 +83,7 @@ namespace EFTService.Utils
         }
         public void ReadCallback(IAsyncResult ar)
         {
+
             int fileNameLen = 1;
             String content = String.Empty;
             StateObject state = (StateObject)ar.AsyncState;
@@ -114,7 +100,7 @@ namespace EFTService.Utils
                 }
                 if (_flag >= 1)
                 {
-                    BinaryWriter writer = new BinaryWriter(File.Open(_receivedPath , FileMode.Append));
+                    BinaryWriter writer = new BinaryWriter(File.Open(_receivedPath, FileMode.Append));
                     if (_flag == 1)
                     {
                         writer.Write(state.buffer, 4 + fileNameLen, bytesRead - (4 + fileNameLen));
@@ -134,7 +120,7 @@ namespace EFTService.Utils
         }
         public void LabelWriter()
         {
-          //  InfoLabel.Text = "Data has been received";
+            //  InfoLabel.Text = "Data has been received";
         }
         #endregion
 
