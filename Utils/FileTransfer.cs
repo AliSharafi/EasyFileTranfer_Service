@@ -104,39 +104,51 @@ namespace EFTService.Utils
         }
         public void ReadCallback(IAsyncResult ar)
         {
-
-            int fileNameLen = 1;
-            String content = String.Empty;
-            StateObject state = (StateObject)ar.AsyncState;
-            Socket handler = state.workSocket;
-            int bytesRead = handler.EndReceive(ar);
-            if (bytesRead > 0)
+            try
             {
-                if (_flag == 0)
+                int fileNameLen = 1;
+                String content = String.Empty;
+                StateObject state = (StateObject)ar.AsyncState;
+                Socket handler = state.workSocket;
+                int bytesRead = handler.EndReceive(ar);
+                if (bytesRead > 0)
                 {
-                    fileNameLen = BitConverter.ToInt32(state.buffer, 0);
-                    string fileName = Encoding.UTF8.GetString(state.buffer, 4, fileNameLen);
-                    _receivedPath = Helper.GetSavePath(_configPath, fileName); // TODO
-                    _flag++;
-                }
-                if (_flag >= 1)
-                {
-                    BinaryWriter writer = new BinaryWriter(File.Open(_receivedPath, FileMode.Append));
-                    if (_flag == 1)
+                    if (_flag == 0)
                     {
-                        writer.Write(state.buffer, 4 + fileNameLen, bytesRead - (4 + fileNameLen));
+                        fileNameLen = BitConverter.ToInt32(state.buffer, 0);
+                        string fileName = Encoding.UTF8.GetString(state.buffer, 4, fileNameLen);
+                        _receivedPath = Helper.GetSavePath(_configPath, fileName); // TODO
                         _flag++;
                     }
-                    else
-                        writer.Write(state.buffer, 0, bytesRead);
-                    writer.Close();
-                    handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-                    new AsyncCallback(ReadCallback), state);
+                    if (_flag >= 1)
+                    {
+                        BinaryWriter writer = new BinaryWriter(File.Open(_receivedPath, FileMode.Append));
+                        if (_flag == 1)
+                        {
+                            writer.Write(state.buffer, 4 + fileNameLen, bytesRead - (4 + fileNameLen));
+                            _flag++;
+                        }
+                        else
+                            writer.Write(state.buffer, 0, bytesRead);
+                        writer.Close();
+                        handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+                        new AsyncCallback(ReadCallback), state);
+                    }
+                }
+                else
+                {
+                    //InfoLabel.Invoke(new ReceiveDelegate(LabelWriter));
                 }
             }
-            else
+            catch(Exception ex)
             {
-                //InfoLabel.Invoke(new ReceiveDelegate(LabelWriter));
+#if DEBUG
+                using (EventLog eventLog = new EventLog("Application"))
+                {
+                    eventLog.Source = "EFTService";
+                    eventLog.WriteEntry("Error in ReadCallback : " + ex.Message, EventLogEntryType.Error, 101, 1);
+                }
+#endif
             }
         }
         public void LabelWriter()
