@@ -44,6 +44,13 @@ namespace EFTService.Utils
         #region Receive file
         private void StartListening()
         {
+#if DEBUG
+            using (EventLog eventLog = new EventLog("Application"))
+            {
+                eventLog.Source = "EFTService";
+                eventLog.WriteEntry("Starting to listen", EventLogEntryType.Information, 101, 1);
+            }
+#endif
             //byte[] bytes = new Byte[1024];
             IPEndPoint ipEnd = new IPEndPoint(IPAddress.Any, _portReceive);
             Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -60,10 +67,24 @@ namespace EFTService.Utils
             }
             catch (Exception ex)
             {
+#if DEBUG
+                using (EventLog eventLog = new EventLog("Application"))
+                {
+                    eventLog.Source = "EFTService";
+                    eventLog.WriteEntry("Error in Start Listening " + ex.Message, EventLogEntryType.Information, 101, 1);
+                }
+#endif
             }
         }
         public void AcceptCallback(IAsyncResult ar)
         {
+#if DEBUG
+            using (EventLog eventLog = new EventLog("Application"))
+            {
+                eventLog.Source = "EFTService";
+                eventLog.WriteEntry("Accept Callback ", EventLogEntryType.Information, 101, 1);
+            }
+#endif
             allDone.Set();
 
             Socket listener = (Socket)ar.AsyncState;

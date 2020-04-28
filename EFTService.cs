@@ -18,8 +18,6 @@ namespace EFTService
         public EFTService()
         {
             InitializeComponent();
-            
-
         }
 
         protected override void OnStart(string[] args)
@@ -39,9 +37,15 @@ namespace EFTService
             {
                 ft.Stop();
             }
-            catch
+            catch(Exception ex)
             {
-
+#if DEBUG
+                using (EventLog eventLog = new EventLog("Application"))
+                {
+                    eventLog.Source = "EFTService";
+                    eventLog.WriteEntry("Error in Stop Listening " + ex.Message, EventLogEntryType.Information, 101, 1);
+                }
+#endif
             }
 
         }
