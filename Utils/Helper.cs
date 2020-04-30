@@ -33,54 +33,18 @@ namespace EFTService.Utils
                 JavaScriptSerializer _serializer = new JavaScriptSerializer();
                 ExeConfigurationFileMap fileMap = new ExeConfigurationFileMap();
                 AppConfigs conf = new AppConfigs();
-#if DEBUG
-                using (EventLog eventLog = new EventLog("Application"))
-                {
-                    eventLog.Source = "EFTService";
-                    eventLog.WriteEntry("GetSavePath : 1", EventLogEntryType.Information, 101, 1);
-                }
-#endif
+
                 fileMap.ExeConfigFilename = ConfigPath;
                 Configuration config = ConfigurationManager.OpenMappedExeConfiguration(fileMap, ConfigurationUserLevel.None);
                 var settings = config.AppSettings.Settings;
-#if DEBUG
-                using (EventLog eventLog = new EventLog("Application"))
-                {
-                    eventLog.Source = "EFTService";
-                    eventLog.WriteEntry("GetSavePath : 2" + settings.Count.ToString(), EventLogEntryType.Information, 101, 1);
-                }
-#endif
+
                 if (settings["AppConfigs"] != null && settings["AppConfigs"].Value != "")
                 {
-#if DEBUG
-                    using (EventLog eventLog = new EventLog("Application"))
-                    {
-                        eventLog.Source = "EFTService";
-                        eventLog.WriteEntry("GetSavePath Json: " + settings["AppConfigs"].Value, EventLogEntryType.Information, 101, 1);
-                    }
-#endif
                     conf = (AppConfigs)_serializer.Deserialize(settings["AppConfigs"].Value, typeof(AppConfigs));
                 }
-#if DEBUG
-                using (EventLog eventLog = new EventLog("Application"))
-                {
-                    eventLog.Source = "EFTService";
-                    eventLog.WriteEntry("GetSavePath : 3", EventLogEntryType.Information, 101, 1);
-                }
-#endif
+
                 string currUser = fileNameWithUsername.Split('■')[1];
                 string filename = fileNameWithUsername.Split('■')[0];
-
-#if DEBUG
-                using (EventLog eventLog = new EventLog("Application"))
-                {
-                    eventLog.Source = "EFTService";
-                    eventLog.WriteEntry("GetSavePath : 4" + conf == null ? "conf is null" : conf.ToString(), EventLogEntryType.Information, 101, 1);
-                    eventLog.WriteEntry("GetSavePath : 5" + conf.Employees.Count.ToString(), EventLogEntryType.Information, 101, 1); ;
-                    eventLog.WriteEntry("GetSavePath : 6" + conf.Employees.FirstOrDefault().Username, EventLogEntryType.Information, 101, 1); ;
-                    eventLog.WriteEntry("GetSavePath  result : " + conf.Employees.Where(e => e.Username.Trim().ToLower() == currUser.Trim().ToLower()).FirstOrDefault().SavePath + "\\" + filename, EventLogEntryType.Information, 101, 1);
-                }
-#endif
 
                 return conf.Employees.Where(e => e.Username.Trim().ToLower() == currUser.Trim().ToLower()).FirstOrDefault().SavePath + "\\" + filename;
             }

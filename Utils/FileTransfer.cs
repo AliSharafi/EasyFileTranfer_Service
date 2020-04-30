@@ -122,7 +122,7 @@ namespace EFTService.Utils
                     }
                     if (_flag >= 1)
                     {
-                        BinaryWriter writer = new BinaryWriter(File.Open(_receivedPath, FileMode.Append));
+                        BinaryWriter writer = new BinaryWriter(File.Open(_receivedPath, FileMode.Create));
                         if (_flag == 1)
                         {
                             writer.Write(state.buffer, 4 + fileNameLen, bytesRead - (4 + fileNameLen));
