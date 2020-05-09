@@ -58,6 +58,7 @@
     <Compile Include="Utils\AppConfigs.cs" />
     <Compile Include="Utils\FileTransfer.cs" />
     <Compile Include="Utils\Helper.cs" />
+    <Compile Include="Utils\WindowsContextMenu.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

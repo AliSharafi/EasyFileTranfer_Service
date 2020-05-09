@@ -7,6 +7,7 @@ using System.Linq;
 using System.ServiceProcess;
 using System.Text;
 using System.Threading.Tasks;
+using EasyFileTransfer.Utils;
 using EFTService.Utils;
 
 namespace EFTService
@@ -28,6 +29,8 @@ namespace EFTService
             {
                 string _configPath = args[0];
                 ft = new FileTransfer(true, _configPath);
+
+                WindowsContextMenu.Add("Send To My Client");
             }
         }
         protected override void OnStop()
@@ -35,6 +38,7 @@ namespace EFTService
             base.OnStop();
             try
             {
+                WindowsContextMenu.Remove("Send To My Client");
                 ft.Stop();
             }
             catch(Exception ex)
